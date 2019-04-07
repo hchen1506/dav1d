@@ -67,6 +67,24 @@ static int fuzz_picture_allocator(Dav1dPicture *pic, void *cookie) {
 }
 #endif
 
+#ifdef DAV1D_DECRYPT
+static void encrypt(uint8_t *const input, uint8_t *const output, size_t size)
+{
+    // A simple encryption.
+    for (size_t i = 0; i < size; ++i)
+        output[i] = input[i] ^ i;
+}
+
+static void fuzz_decryptor(void *cookie, const uint8_t *input,
+                           uint8_t *const output, size_t count)
+{
+    size_t offset = (intptr_t)input - (intptr_t)cookie;
+    // Decryption corresponding to the above encryption.
+    for (size_t i = 0; i < count; ++i)
+        output[i] = input[i] ^ (offset + i);
+}
+#endif
+
 // expects ivf input
 
 int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
@@ -145,7 +163,15 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
         p = dav1d_data_create(&buf, frame_size);
         if (!p) goto cleanup;
         memcpy(p, ptr, frame_size);
+#ifdef DAV1D_DECRYPT
+        encrypt(p, p, frame_size);
+#endif
         ptr += frame_size;
+
+#ifdef DAV1D_DECRYPT
+        buf.decryptor.cookie = (void*)ptr;
+        buf.decryptor.callback = fuzz_decryptor;
+#endif
 
         do {
             if ((err = dav1d_send_data(ctx, &buf)) < 0) {

@@ -48,6 +48,24 @@
 
 #include "dav1d_cli_parse.h"
 
+#ifdef DAV1D_DECRYPT
+static void xor_encrypt(uint8_t *const input, uint8_t *const output, size_t size)
+{
+    // A simple encryption.
+    for (size_t i = 0; i < size; ++i)
+        output[i] = input[i] ^ i;
+}
+
+static void xor_decrypt(void *cookie, const uint8_t *input,
+                        uint8_t *const output, size_t count)
+{
+    size_t offset = (intptr_t)input - (intptr_t)cookie;
+    // Decryption corresponding to the above encryption.
+    for (size_t i = 0; i < count; ++i)
+        output[i] = input[i] ^ (offset + i);
+}
+#endif
+
 static void print_stats(const int istty, const unsigned n,
                         const unsigned num)
 {

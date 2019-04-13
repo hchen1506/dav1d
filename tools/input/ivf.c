@@ -90,7 +90,7 @@ static int ivf_open(IvfInputContext *const c, const char *const file,
     return 0;
 }
 
-static int ivf_read(IvfInputContext *const c, Dav1dData *const buf, Encryptor encrypt_cb) {
+static int ivf_read(IvfInputContext *const c, Dav1dData *const buf, Encryptor encryptor) {
     uint8_t data[8];
     uint8_t *ptr;
     size_t res;
@@ -110,6 +110,9 @@ static int ivf_read(IvfInputContext *const c, Dav1dData *const buf, Encryptor en
         dav1d_data_unref(buf);
         return -1;
     }
+
+    if (encryptor)
+        encryptor(ptr, ptr, sz);
 
     return 0;
 }

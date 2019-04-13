@@ -84,7 +84,7 @@ static int annexb_open(AnnexbInputContext *const c, const char *const file,
     return 0;
 }
 
-static int annexb_read(AnnexbInputContext *const c, Dav1dData *const data) {
+static int annexb_read(AnnexbInputContext *const c, Dav1dData *const data, Encryptor encryptor) {
     size_t len;
     int res;
 
@@ -108,6 +108,9 @@ static int annexb_read(AnnexbInputContext *const c, Dav1dData *const data) {
         dav1d_data_unref(data);
         return -1;
     }
+
+    if (encryptor)
+        encryptor(ptr, ptr, len);
 
     return 0;
 }
